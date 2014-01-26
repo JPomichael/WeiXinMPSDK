@@ -2,11 +2,16 @@
 =================
 
 
-已经支持所有微信4.5 API，支持语音接收及返回音乐格式。 已经支持关注（订阅）事件推送，尚未发布的消息推送功能可以通过项目中的单元测试进行开发。
+已经支持所有微信5.0 API，包括自定义菜单。
 
-目前官方的API都已完美集成，更多方便开发的扩展功能还在陆续添加中。除非有特殊说明，所有升级都会尽量确保向下兼容，所以已经发布的版本请放心使用或直接升级（覆盖）最新的[Senparc.Weixin.MP.dll](https://github.com/JeffreySu/WeiXinMPSDK/tree/master/Senparc.Weixin.MP.BuildOutPut)。
+（同时由于易信的API目前与微信保持一致，此SDK也可以直接用于易信，如需使用易信的自定义菜单，通用接口改成易信的通讯地址即可）
 
-微信公众平台SDK：Senparc.Weixin.MP beta
+
+已经支持用户会话上下文（解决服务器无法使用Session处理用户信息的问题）。
+
+目前官方的API都已完美集成，除非有特殊说明，所有升级都会尽量确保向下兼容，所以已经发布的版本请放心使用或直接升级（覆盖）最新的[Senparc.Weixin.MP.dll](https://github.com/JeffreySu/WeiXinMPSDK/tree/master/Senparc.Weixin.MP.BuildOutPut)。
+
+如果需要使用或修改此项目的源代码，建议先Fork。也欢迎将您修改的通用版本Pull Request过来。
 
 资源
 ----------------
@@ -14,17 +19,38 @@
 
 源代码及最新更新：https://github.com/JeffreySu/WeiXinMPSDK
 
-SDK技术交流QQ群：300313885
+Q&A：https://github.com/JeffreySu/WeiXinMPSDK/wiki/QA
+
+自定义菜单在线编辑工具：http://weixin.senparc.com/Menu
+
+SDK技术交流QQ群：1群：300313885（已满）  2群：293958349  3群：342319110
+
+业务联系QQ：498977166
 
 新浪微博：[@苏震巍](http://weibo.com/jeffreysu1984)
+
+如果这个项目对您有用，我们欢迎各方任何形式的捐助，也包括参与到项目代码更新或意见反馈中来。谢谢！
+
+
+资金捐助：https://me.alipay.com/jeffreysu
+
+
 
 ###关注测试账号（SenparcRobot）：
 [![image]](http://weixin.senparc.com/)  
 [image]: http://weixin.senparc.com/Images/qrcode.jpg
 
+
+微信公众平台开发系列教程：http://www.cnblogs.com/szw/archive/2013/05/14/weixin-course-index.html
+
+
 项目文件夹说明
 --------------
-> Senparc.Weixin.MP.BuildOutPut：最新版本Senparc.Weixin.MP.dll发布文件夹
+> Senparc.Weixin.MP.BuildOutPut：最新版本Senparc.Weixin.MP.dll及Senparc.Weixin.MP.MvcExtension.dll发布文件夹
+
+> Senparc.Weixin.MP.MvcExtension：Senparc.Weixin.MP.MvcExtension.dll源码，为MVC4.0项目提供的扩展包。
+
+> Senparc.Weixin.MP.P2P：用户点对点及无限制群发的扩展功能包，同时具备侦探fakeid和OpenId的功能。
 
 > Senparc.Weixin.MP.Sample：可以直接发布使用的Demo（ASP.NET MVC 4.0，需要.NET 4.0）
 
@@ -35,7 +61,7 @@ SDK技术交流QQ群：300313885
 Senparc.Weixin.MP.Sample中的关键代码说明（这是MVC项目，WebForms项目见Weixin.aspx）
 --------------
 ###/Controllers/WeixinController.cs
-下面的Token需要和微信公众平台后台设置的Token同步，如果经常更换建议写入Web.config等配置文件：
+下面的Token需要和微信公众平台后台设置的Token同步，如果经常更换建议写入Web.config等配置文件（实际使用过程中两列建议使用数字+英文大小写改写Token，Token一旦被破解，微信请求将很容易被伪造！）：
 ```C#
 public readonly string Token = "weixin";
 ```
@@ -54,7 +80,7 @@ public ActionResult Get(string signature, string timestamp, string nonce, string
     }
     else
     {
-        return Content("failed:" + signature + "," + MP.CheckSignature.GetSignature(timestamp, nonce, Token));
+        return Content("failed:" + signature + "," + CheckSignature.GetSignature(timestamp, nonce, Token));
     }
 }
 ```
@@ -80,7 +106,7 @@ Senparc.Weixin.MP提供了2中处理请求的方式，[传统方法](https://git
 MessageHandler的处理流程非常简单：
 ``` C#
 [HttpPost]
-[ActionName("Post")]
+[ActionName("Index")]
 public ActionResult Post(string signature, string timestamp, string nonce, string echostr)
 {
     if (!CheckSignature.Check(signature, timestamp, nonce, Token))
@@ -88,14 +114,17 @@ public ActionResult Post(string signature, string timestamp, string nonce, strin
         return Content("参数错误！");
     }
 
-    var messageHandler = new CustomerMessageHandler(Request.InputStream);//接收消息
+    var messageHandler = new CustomMessageHandler(Request.InputStream);//接收消息
+    
     messageHandler.Execute();//执行微信处理过程
-    return Content(messageHandler.ResponseDocument.ToString());//返回数据
+    
+    //return Content(messageHandler.ResponseDocument.ToString());//v0.7-
+    return new WeixinResult(messageHandler);//v0.8+ with MvcExtension
 }
 ```
 整个消息的接收、处理、返回分别只需要一行代码。
 
-上述代码中的CustomerMessageHandler是一个自定义的类，继承自Senparc.Weixin.MP.MessageHandler.cs。MessageHandler是一个抽象类，包含了执行各个请求的抽象方法，我们只需要在自己创建的CustomerMessageHandler中逐个实现这些方法就可以了。刚建好的CustomerMessageHandler.cs如下：
+上述代码中的CustomMessageHandler是一个自定义的类，继承自Senparc.Weixin.MP.MessageHandler.cs。MessageHandler是一个抽象类，包含了执行各种不同请求类型的抽象方法（如文字，语音，位置、图片等等），我们只需要在自己创建的CustomMessageHandler中逐个实现这些方法就可以了。刚建好的CustomMessageHandler.cs如下：
 ```C#
 using System;
 using System.IO;
@@ -104,24 +133,32 @@ using Senparc.Weixin.MP.Entities;
 
 namespace Senparc.Weixin.MP.Sample.CustomerMessageHandler
 {
-    public class MyMessageHandler:MessageHandler
+    public class CustomMessageHandler : MessageHandler<MessageContext>
     {
-        public MyMessageHandler(Stream inputStream)
+        public CustomMessageHandler(Stream inputStream)
             : base(inputStream)
         {
 
         }
+        
+        public override IResponseMessageBase DefaultResponseMessage(IRequestMessageBase requestMessage)
+        {
+            var responseMessage = this.CreateResponseMessage<ResponseMessageText>();//ResponseMessageText也可以是News等其他类型
+            responseMessage.Content = "这条消息来自DefaultResponseMessage。";
+            return responseMessage;
+        }
 
         public override IResponseMessageBase OnTextRequest(RequestMessageText requestMessage)
         {
-            throw new NotImplementedException();
+            //...
         }
 
         public override IResponseMessageBase OnVoiceRequest(RequestMessageVoice requestMessage)
         {
-            throw new NotImplementedException();
+            //...
         }
-
+        
+        //更多没有重写的OnXX方法，将默认返回DefaultResponseMessage中的结果。
         ....
     }
 }
@@ -133,7 +170,7 @@ namespace Senparc.Weixin.MP.Sample.CustomerMessageHandler
       public override IResponseMessageBase OnTextRequest(RequestMessageText requestMessage)
       {
           //TODO:这里的逻辑可以交给Service处理具体信息，参考OnLocationRequest方法或/Service/LocationSercice.cs
-          var responseMessage = ResponseMessageBase.CreateFromRequestMessage<ResponseMessageText>(RequestMessage);//v0.3版本之前的非泛型方法仍然有效
+          var responseMessage = ResponseMessageBase.CreateFromRequestMessage<ResponseMessageText>(requestMessage);//v0.3版本之前的非泛型方法仍然有效
           responseMessage.Content =
               string.Format(
                   "您刚才发送了文字信息：{0}",
@@ -141,14 +178,31 @@ namespace Senparc.Weixin.MP.Sample.CustomerMessageHandler
           return responseMessage;
       }
 ```
-这样CustomerMessageHandler在执行messageHandler.Execute()的时候，如果发现请求信息的类型是文本，会自动调用以上代码，并返回代码中的responseMessage作为返回信息。responseMessage可以是IResponseMessageBase接口下的任何类型（包括文字、新闻、多媒体等格式）。
+这样CustomMessageHandler在执行messageHandler.Execute()的时候，如果发现请求信息的类型是文本，会自动调用以上代码，并返回代码中的responseMessage作为返回信息。responseMessage可以是IResponseMessageBase接口下的任何类型（包括文字、新闻、多媒体等格式）。
+
+从v0.4.0开始，MessageHandler增加了对用户会话上下文的支持，用于解决服务器上无法使用Session管理用户会话的缺陷。详见：[用户上下文WeixinContext和MessageContext](https://github.com/JeffreySu/WeiXinMPSDK/wiki/%E7%94%A8%E6%88%B7%E4%B8%8A%E4%B8%8B%E6%96%87WeixinContext%E5%92%8CMessageContext)
+
+使用Nuget安装到项目中
+--------------
+地址：https://www.nuget.org/packages/Senparc.Weixin.MP
+
+命令：
+```
+PM> Install-Package Senparc.Weixin.MP
+```
+
+捐助
+--------------
+如果这个项目对您有用，我们欢迎各方任何形式的捐助，也包括参与到项目代码更新或意见反馈中来。谢谢！
+
+资金捐助：https://me.alipay.com/jeffreysu
 
 
 License
 --------------
 FreeBSD License
 ```
-Copyright (c) 2013, Jeffrey Su <www.jeffreysu.gmail.com>
+Copyright (c) 2013, Jeffrey Su <www.jeffreysu@gmail.com>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

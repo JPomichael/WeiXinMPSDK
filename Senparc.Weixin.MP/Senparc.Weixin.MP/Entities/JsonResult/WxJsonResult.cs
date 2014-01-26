@@ -10,8 +10,12 @@ namespace Senparc.Weixin.MP.Entities
     /// </summary>
     public class WxJsonResult
     {
-        public ReturnCode errcode { get; set; }
+        public  ReturnCode errcode { get; set; }
         public string errmsg { get; set; }
+        /// <summary>
+        /// 为P2P返回结果做准备
+        /// </summary>
+        public virtual object P2PData { get; set; }
         //public ReturnCode ReturnCode
         //{
         //    get

@@ -49,6 +49,12 @@ namespace Senparc.Weixin.MP
                     case RequestMsgType.Voice:
                         requestMessage = new RequestMessageVoice();
                         break;
+                    case RequestMsgType.Video:
+                        requestMessage = new RequestMessageVideo();
+                        break;
+                    case RequestMsgType.Link:
+                        requestMessage = new RequestMessageLink();
+                        break;
                     case RequestMsgType.Event:
                         //判断Event类型
                         switch (doc.Root.Element("Event").Value.ToUpper())
@@ -64,6 +70,12 @@ namespace Senparc.Weixin.MP
                                 break;
                             case "UNSUBSCRIBE"://取消订阅（关注）
                                 requestMessage = new RequestMessageEvent_Unsubscribe();
+                                break;
+                            case "CLICK"://菜单点击
+                                requestMessage = new RequestMessageEvent_Click();
+                                break;
+                            case "SCAN"://二维码扫描
+                                requestMessage = new RequestMessageEvent_Scan();
                                 break;
                             default://其他意外类型（也可以选择抛出异常）
                                 requestMessage = new RequestMessageEventBase();

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -69,7 +70,7 @@ namespace Senparc.Weixin.MP.Helpers
                         //以下为实体类型
                         case "List`1"://List<T>类型，ResponseMessageNews适用
                             var genericArguments = prop.PropertyType.GetGenericArguments();
-                            if (genericArguments[0].Name == "Article")//Response适用
+                            if (genericArguments[0].Name == "Article")//ResponseMessageNews适用
                             {
                                 //文章下属节点item
                                 List<Article> articles = new List<Article>();
@@ -87,6 +88,21 @@ namespace Senparc.Weixin.MP.Helpers
                             FillEntityWithXml(music, new XDocument(root.Element(propName)));
                             prop.SetValue(entity, music, null);
                             break;
+                        case "Image"://ResponseMessageImage适用
+                            Image image = new Image();
+                            FillEntityWithXml(image, new XDocument(root.Element(propName)));
+                            prop.SetValue(entity, image, null);
+                            break;
+                        case "Voice"://ResponseMessageVoice适用
+                            Voice voice = new Voice();
+                            FillEntityWithXml(voice, new XDocument(root.Element(propName)));
+                            prop.SetValue(entity, voice, null);
+                            break;
+                        case "Video"://ResponseMessageVideo适用
+                            Video video = new Video();
+                            FillEntityWithXml(video, new XDocument(root.Element(propName)));
+                            prop.SetValue(entity, video, null);
+                            break;
                         default:
                             prop.SetValue(entity, root.Element(propName).Value, null);
                             break;
@@ -98,8 +114,8 @@ namespace Senparc.Weixin.MP.Helpers
         /// <summary>
         /// 将实体转为XML
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="entity"></param>
+        /// <typeparam name="T">RequestMessage或ResponseMessage</typeparam>
+        /// <param name="entity">实体</param>
         /// <returns></returns>
         public static XDocument ConvertEntityToXml<T>(this T entity) where T : class , new()
         {
@@ -113,11 +129,11 @@ namespace Senparc.Weixin.MP.Helpers
             */
             var propNameOrder = new List<string>();
             //不同返回类型需要对应不同特殊格式的排序
-            if (typeof(T) == typeof(ResponseMessageNews))
+            if (entity is ResponseMessageNews)
             {
                 propNameOrder.AddRange(new[] { "ToUserName", "FromUserName", "CreateTime", "MsgType", "Content", "ArticleCount", "Articles", "FuncFlag",/*以下是Atricle属性*/ "Title ", "Description ", "PicUrl", "Url" });
             }
-            else if (typeof(T) == typeof(ResponseMessageMusic))
+            else if (entity is ResponseMessageMusic)
             {
                 propNameOrder.AddRange(new[] { "ToUserName", "FromUserName", "CreateTime", "MsgType", "Music", "FuncFlag",/*以下是Music属性*/ "Title ", "Description ", "MusicUrl", "HQMusicUrl" });
             }
@@ -193,12 +209,33 @@ namespace Senparc.Weixin.MP.Helpers
         /// <summary>
         /// 将实体转为XML字符串
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="entity"></param>
+        /// <typeparam name="T">RequestMessage或ResponseMessage</typeparam>
+        /// <param name="entity">实体</param>
         /// <returns></returns>
         public static string ConvertEntityToXmlString<T>(this T entity) where T : class , new()
         {
             return entity.ConvertEntityToXml().ToString();
+        }
+
+        /// <summary>
+        /// ResponseMessageBase.CreateFromRequestMessage<T>(requestMessage)的扩展方法
+        /// </summary>
+        /// <typeparam name="T">需要生成的ResponseMessage类型</typeparam>
+        /// <param name="requestMessage">IRequestMessageBase接口下的接收信息类型</param>
+        /// <returns></returns>
+        public static T CreateResponseMessage<T>(this IRequestMessageBase requestMessage) where T : ResponseMessageBase
+        {
+            return ResponseMessageBase.CreateFromRequestMessage<T>(requestMessage);
+        }
+
+        /// <summary>
+        /// ResponseMessageBase.CreateFromResponseXml(xml)的扩展方法
+        /// </summary>
+        /// <param name="xml">返回给服务器的Response Xml</param>
+        /// <returns></returns>
+        public static IResponseMessageBase CreateResponseMessage(this string xml)
+        {
+            return ResponseMessageBase.CreateFromResponseXml(xml);
         }
     }
 }

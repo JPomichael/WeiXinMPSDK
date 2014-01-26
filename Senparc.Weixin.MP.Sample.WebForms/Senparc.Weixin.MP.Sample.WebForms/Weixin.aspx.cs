@@ -30,7 +30,8 @@ namespace Senparc.Weixin.MP.Sample.WebForms
                 }
                 else
                 {
-                    WriteContent("failed:" + signature + "," + CheckSignature.GetSignature(timestamp, nonce, Token));
+                    WriteContent("failed:" + signature + "," + CheckSignature.GetSignature(timestamp, nonce, Token)+"。"+
+                                "如果你在浏览器中看到这句话，说明此地址可以被作为微信公众账号后台的Url，请注意保持Token一致。");
                 }
                 Response.End();
             }
@@ -43,12 +44,15 @@ namespace Senparc.Weixin.MP.Sample.WebForms
                     return;
                 }
 
+                //v4.2.2之后的版本，可以设置每个人上下文消息储存的最大数量，防止内存占用过多，如果该参数小于等于0，则不限制
+                var maxRecordCount = 10;
+
                 //自定义MessageHandler，对微信请求的详细判断操作都在这里面。
-                var messageHandler = new CustomMessageHandler(Request.InputStream);
+                var messageHandler = new CustomMessageHandler(Request.InputStream, maxRecordCount);
 
                 try
                 {
-                    //测试时可开启此记录，帮助跟踪数据
+                    //测试时可开启此记录，帮助跟踪数据，使用前请确保App_Data文件夹存在，且有读写权限。
                     messageHandler.RequestDocument.Save(
                         Server.MapPath("~/App_Data/" + DateTime.Now.Ticks + "_Request_" +
                                        messageHandler.RequestMessage.FromUserName + ".txt"));

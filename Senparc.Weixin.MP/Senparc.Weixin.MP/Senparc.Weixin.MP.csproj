@@ -28,6 +28,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>..\..\Senparc.Weixin.MP.BuildOutPut\Senparc.Weixin.MP.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Test|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
@@ -50,16 +51,39 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AdvancedAPIs\Custom\Custom.cs" />
+    <Compile Include="AdvancedAPIs\Groups\CreateGroupResult.cs" />
+    <Compile Include="AdvancedAPIs\Groups\Groups.cs" />
+    <Compile Include="AdvancedAPIs\Groups\GroupsJson.cs" />
+    <Compile Include="AdvancedAPIs\OAuth\OAuthAccessTokenResult.cs" />
+    <Compile Include="AdvancedAPIs\OAuth\OAuth.cs" />
+    <Compile Include="AdvancedAPIs\OAuth\OAuthUserInfo.cs" />
+    <Compile Include="AdvancedAPIs\QrCode\CreateQrCodeResult.cs" />
+    <Compile Include="AdvancedAPIs\QrCode\QrCode.cs" />
+    <Compile Include="AdvancedAPIs\User\OpenIdResultJson.cs" />
+    <Compile Include="AdvancedAPIs\User\User.cs" />
+    <Compile Include="AdvancedAPIs\User\UserInfoJson.cs" />
+    <Compile Include="Agents\MessageAgent.cs" />
     <Compile Include="CheckSignature.cs" />
+    <Compile Include="CommonAPIs\CommonApi.cs" />
+    <Compile Include="CommonAPIs\CommonJsonSend.cs" />
+    <Compile Include="Context\MessageContainer.cs" />
+    <Compile Include="Context\WeixinContextRemovedEventArgs.cs" />
     <Compile Include="Entities\GoogleMap\Markers.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Entities\JsonResult\AccessTokenResult.cs" />
+    <Compile Include="Entities\JsonResult\GetMenuResultFull.cs" />
+    <Compile Include="Entities\JsonResult\GetMenuResult.cs" />
+    <Compile Include="Entities\JsonResult\UploadMediaFileResult.cs" />
+    <Compile Include="Entities\JsonResult\WeixinUserInfoResult.cs" />
     <Compile Include="Entities\JsonResult\WxJsonResult.cs" />
     <Compile Include="Entities\Menu\BaseButton.cs" />
-    <Compile Include="Entities\Menu\Button.cs" />
     <Compile Include="Entities\Menu\ButtonGroup.cs" />
+    <Compile Include="Entities\Menu\SingleButton.cs" />
+    <Compile Include="Entities\Menu\SingleClickButton.cs" />
     <Compile Include="Entities\Menu\SubButton.cs" />
+    <Compile Include="Entities\Menu\SingleViewButton.cs" />
     <Compile Include="Entities\MessageBase.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -90,9 +114,13 @@
     <Compile Include="Entities\Request\RequestMessageEvent_Subscribe.cs" />
     <Compile Include="Entities\Request\RequestMessageEvent_Unsubscribe.cs" />
     <Compile Include="Entities\Request\RequestMessageEvent_Click.cs" />
+    <Compile Include="Entities\Request\RequestMessageLink.cs" />
+    <Compile Include="Entities\Request\RequestMessageEvent_Scan.cs" />
+    <Compile Include="Entities\Request\RequestMessageVideo.cs" />
     <Compile Include="Entities\Response\Article.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Entities\Response\Image.cs" />
     <Compile Include="Entities\Response\Music.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -108,15 +136,24 @@
     <Compile Include="Entities\Response\ResponseMessageText.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Entities\Response\ResponseMessageImage.cs" />
+    <Compile Include="Entities\Response\ResponseMessageVoice.cs" />
+    <Compile Include="Entities\Response\Video.cs" />
+    <Compile Include="Entities\Response\Voice.cs" />
+    <Compile Include="Entities\Response\ResponseMessageVideo.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="Exceptions\ErrorJsonResultException.cs" />
+    <Compile Include="Exceptions\WeixinMenuException.cs" />
     <Compile Include="Helpers\DateTimeHelper.cs" />
     <Compile Include="Helpers\EntityHelper.cs" />
     <Compile Include="Helpers\EventHelper.cs" />
+    <Compile Include="Helpers\FileHelper.cs" />
     <Compile Include="Helpers\GoogleMapHelper.cs" />
     <Compile Include="Helpers\GpsHelper.cs" />
     <Compile Include="Helpers\MsgTypeHelper.cs" />
+    <Compile Include="Helpers\SerializerHelper.cs" />
     <Compile Include="HttpUtility\Get.cs" />
+    <Compile Include="HttpUtility\Post.cs" />
     <Compile Include="HttpUtility\RequestUtility.cs" />
     <Compile Include="MessageHandlers\MessageHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -124,6 +161,11 @@
     <Compile Include="Exceptions\UnknownRequestMsgTypeException.cs" />
     <Compile Include="Exceptions\WeixinException.cs" />
     <Compile Include="ResponseMessageFactory.cs" />
+    <Compile Include="Context\MessageContext.cs" />
+    <Compile Include="Context\WeixinContext.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CommonAPIs\CommonApi.Menu.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
